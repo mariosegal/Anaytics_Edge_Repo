@@ -701,11 +701,46 @@ pred_ens_glm2 <- predict(glm_ensemble2,test_new1a,type='prob')
 write.csv(data.frame(UniqueID=test_new1$UniqueID,Probability1=pred_ens_glm2[,2]),
           'submission_ens_glm2.csv',row.names=F)
 
+
+#what If I try rf with this
+
+set.seed(123)
+rf_ensemble2 <- caretStack(
+  model_list2, 
+  method='rf',
+  metric='ROC', tuneLength=3,
+  trControl=trainControl(
+    method='boot',
+    number=25,
+    savePredictions=TRUE,
+    classProbs=TRUE,
+    summaryFunction=twoClassSummary
+  )
+)
+
+pred_ens_rf2 <- predict(rf_ensemble2,test_new1a,type='prob')
+write.csv(data.frame(UniqueID=test_new1a$UniqueID,Probability1=pred_ens_rf2[,2]),
+          'submission_ens_rf2.csv',row.names=F)
 ###
 #the log helped a lot
 #I also would like to try t impite the missing owrkd count, I think that 
 #could help the log model, as 0 may be makig it not idal
 
+#other idea is to try PCA preprocess (or ICA prep-process)
+#with list 3 since that is my best one so far
+#then move forward
+
+drop2 <- which(sapply(train4,sd)==0)
+set.seed(85)
+ctrl_pca = trainControl(method='boot',number=5,savePredictions = T,
+                        summaryFunction = twoClassSummary,
+                        classProbs = TRUE,verboseIter =T)
+registerDoMC(1)
+nzv1 = nearZeroVar(train4[])
+set.seed(67)
+gbm_pca <- train(Popular~.,data=train4[,-nzv1],preProcess=c("pca"),
+                 trControl = ctrl_pca,metric="ROC",tune_length=3,
+                 method='gbm',distribution='bernoulli')
 
 
 save(model_list,file='model_list.rdata')
