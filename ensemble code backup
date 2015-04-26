@@ -1,0 +1,16 @@
+n=25
+ctrl5<- trainControl(method = "boot", number = n, savePredictions = T,
+                      summaryFunction = twoClassSummary,
+                      classProbs = TRUE,verboseIter =T,
+                      index=createResample(train3$Popular, n))
+
+list3 = list(log=caretModelSpec(method='glmnet',family='bernoulli',,tuneLength=5),
+             gbm=caretModelSpec(method='gbm',distribution='bernoulli',tuneLength=5),
+             knn=caretModelSpec(method='knn',,tuneLength=5),
+             nnet=caretModelSpec(method='nnet',tuneLength=5))
+
+set.seed(1969)
+model_list1 <- caretList(Popular~.,data=train3[,-drop2],
+                        trControl=ctrl5,metric='ROC',tuneList=list3)
+
+save(model_list1,file='model_list1.rdata')
