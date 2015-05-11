@@ -241,3 +241,95 @@ solm2=matrix(solg2$solution,nrow=22,byrow=F)
 solg2$optimum
 sapply(1:4, function (x) sum(indx*solm1[,x]))
 
+
+##### class assignment
+class1 = c(1,1,2,1,1,2,1,2,1,1,1,2,1,1,1,2,1,1,1,1,2,1,2,1,2,2,2,1,2,1,2,1,2,1,2,2,1,2,2,2)
+class2 = rep(0,40)
+class2[class1==1]=2
+class2[class1==2]=1
+sum(class1==class2)
+
+obj = c(class1,class2)
+rhs= rep(0,42)
+dir=rep("",42)
+con=matrix(0,nrow=42,ncol=80)
+
+
+
+for (i in 1:40) {
+  aux = rep(0,40)
+  aux[i] = 1
+  con[i+2,] = c(aux,aux)
+  rhs[i+2] = 1
+  dir[i+2] = "=="
+}
+
+con[1,] = c(rep(1,40),rep(0,40))
+con[2,]= c(rep(0,40),rep(1,40))
+rhs[1:2] = c(20,20)
+dir[1:2] = "=="
+
+
+solg = Rglpk_solve_LP(obj,con,dir,rhs,types=rep("B",80),max=F,control=list("verbose" =T, "canonicalize_status" = F))
+solg
+solm=matrix(solg$solution,nrow=40,byrow=F)
+solg$optimum
+
+
+
+gender = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+gender1 = as.numeric(!gender)
+
+con1 = rbind(con, c(rep(1,23),rep(0,17),rep(0,40)),c(rep(0,40),rep(1,23),rep(0,17)))
+rhs1 = c(rhs,c(12,12))
+dir1 = c(dir,"<=","<=")
+
+solg1 = Rglpk_solve_LP(obj,con1,dir1,rhs1,types=rep("B",80),max=F,control=list("verbose" =T, "canonicalize_status" = F))
+solg1
+solm1=matrix(solg1$solution,nrow=40,byrow=F)
+solg1$optimum
+tapply(solm1[,1],gender1,sum)
+
+twins = rep(0,40)
+twins[10:11] = 1
+con2 = rbind(con1,c(twins,rep(0,40)),c(rep(0,40),twins))
+rhs2 = c(rhs1,1,1)
+dir2=c(dir1,'==','==')
+
+solg2 = Rglpk_solve_LP(obj,con2,dir2,rhs2,types=rep("B",80),max=F,control=list("verbose" =T, "canonicalize_status" = F))
+solg2
+solm2=matrix(solg2$solution,nrow=40,byrow=F)
+solg2$optimum
+tapply(solm2[,2],gender1,sum)
+
+neighbors = rep(0,40)
+neighbors[c(4,9,15,25,30)] = 1
+con3 = rbind(con2,c(neighbors,rep(0,40)),c(rep(0,40),neighbors))
+rhs3 = c(rhs2,2,2)
+dir3=c(dir2,'>=','>=')
+
+solg3 = Rglpk_solve_LP(obj,con3,dir3,rhs3,types=rep("B",80),max=F,control=list("verbose" =T, "canonicalize_status" = F))
+solg3
+solm3=matrix(solg3$solution,nrow=40,byrow=F)
+solg3$optimum
+tapply(solm3[,2],gender1,sum)
+
+
+extra1 = rep(0,80)
+extra1a = extra1
+extra1a[c(20,61)] = c(1,1)
+extra1b = extra1
+extra1b[c(21,60)] = c(1,1)
+
+extra2 = rep(0,80)
+extra2[41]=1
+extra3 = rep(0,80)
+extra3[80]=1
+
+con4 = rbind(con3,c(extra1a),c(extra1b),extra2,extra3)
+rhs4 = c(rhs3,1,1,1,1)
+dir4=c(dir3,rep('==',4))
+solg4 = Rglpk_solve_LP(obj,con4,dir4,rhs4,types=rep("B",80),max=F,control=list("verbose" =T, "canonicalize_status" = F))
+solg4$optimum
+solm4=matrix(solg4$solution,nrow=40,byrow=F)
+solm4
