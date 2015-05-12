@@ -1,4 +1,4 @@
-#read data
+#nread data
 train <- read.csv('NYTimesBlogTrain.csv',stringsAsFactors=F)
 test <- read.csv('NYTimesBlogTest.csv',stringsAsFactors=F)
 
